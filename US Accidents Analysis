@@ -1,0 +1,57 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import folium
+from folium.plugins import HeatMap
+
+file_path = "C:/Users/nikitha/OneDrive/Documents/US_Accidents_March23.csv"
+df = pd.read_csv(file_path)
+
+df['Start_Time'] = pd.to_datetime(df['Start_Time'], errors='coerce')
+df['Hour'] = df['Start_Time'].dt.hour
+df['Month'] = df['Start_Time'].dt.month
+df['Year'] = df['Start_Time'].dt.year
+
+heat_df = df[['Start_Lat', 'Start_Lng']].dropna().sample(10000)
+map_center = [heat_df['Start_Lat'].mean(), heat_df['Start_Lng'].mean()]
+m = folium.Map(location=map_center, zoom_start=5)
+HeatMap(heat_df.values.tolist(), radius=8).add_to(m)
+m.save("accident_hotspots_map.html")
+print("✅ Hotspot map saved as 'accident_hotspots_map.html'")
+
+weather_top = df['Weather_Condition'].value_counts().nlargest(10)
+plt.figure(figsize=(10,6))
+sns.barplot(x=weather_top.index, y=weather_top.values, hue=weather_top.index, palette='Set2', legend=False)
+plt.title("Top 10 Weather Conditions During Accidents")
+plt.ylabel("Number of Accidents")
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+
+plt.figure(figsize=(10,6))
+sns.histplot(df['Visibility(mi)'].dropna(), bins=30, color='skyblue', kde=True)
+plt.title("Accident Distribution by Visibility")
+plt.xlabel("Visibility (miles)")
+plt.ylabel("Frequency")
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+plt.figure(figsize=(10,5))
+sns.countplot(x='Hour', data=df, palette='coolwarm')
+plt.title("Accidents by Hour of the Day")
+plt.xlabel("Hour")
+plt.ylabel("Accident Count")
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+top_cities = df['City'].value_counts().nlargest(5)
+plt.figure(figsize=(10,5))
+sns.barplot(x=top_cities.index, y=top_cities.values, palette="magma")
+plt.title("Top 5 Cities with Most Accidents")
+plt.ylabel("Accident Count")
+plt.tight_layout()
+plt.show()
+
+
