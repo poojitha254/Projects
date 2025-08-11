@@ -1,0 +1,48 @@
+import pandas as pd
+from textblob import TextBlob
+import matplotlib.pyplot as plt
+from wordcloud import WordCloud
+import seaborn as sns
+
+file_path = "C:/Users/nikitha/Downloads/twitter_training.csv"
+df = pd.read_csv(file_path, header=None, names=["ID", "Entity", "Sentiment", "Tweet"])
+
+print(df.head())
+print(df["Sentiment"].value_counts())
+
+df.dropna(subset=["Tweet"], inplace=True)
+
+plt.figure(figsize=(7,4))
+sns.countplot(data=df, x="Sentiment", palette="Set2")
+plt.title("Sentiment Distribution")
+plt.xlabel("Sentiment")
+plt.ylabel("Tweet Count")
+plt.show()
+
+positive_text = " ".join(df[df["Sentiment"] == "Positive"]["Tweet"])
+wordcloud_pos = WordCloud(width=800, height=400, background_color="white").generate(positive_text)
+plt.figure(figsize=(10, 5))
+plt.imshow(wordcloud_pos, interpolation='bilinear')
+plt.axis("off")
+plt.title("WordCloud - Positive Tweets")
+plt.show()
+
+negative_text = " ".join(df[df["Sentiment"] == "Negative"]["Tweet"])
+wordcloud_neg = WordCloud(width=800, height=400, background_color="white").generate(negative_text)
+plt.figure(figsize=(10, 5))
+plt.imshow(wordcloud_neg, interpolation='bilinear')
+plt.axis("off")
+plt.title("WordCloud - Negative Tweets")
+plt.show()
+
+def get_sentiment(text):
+    polarity = TextBlob(text).sentiment.polarity
+    if polarity > 0:
+        return "Positive"
+    elif polarity < 0:
+        return "Negative"
+    else:
+        return "Neutral"
+
+df["Predicted_Sentiment"] = df["Tweet"].apply(get_sentiment)
+print(df["Predicted_Sentiment"].value_counts())
